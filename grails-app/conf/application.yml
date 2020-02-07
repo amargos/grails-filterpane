@@ -55,6 +55,9 @@ grails:
         defaultScope: singleton
     converters:
         encoding: UTF-8
+        domain:
+            include:
+                class: true
     views:
         default:
             codec: html
@@ -67,11 +70,16 @@ grails:
                 taglib: none
                 staticparts: none
 hibernate:
+    naming_strategy: org.hibernate.cfg.DefaultNamingStrategy
+    hbm2ddl:
+        auto: create-drop
     cache:
         use_second_level_cache : false
         use_query_cache : false
         provider_class : 'org.hibernate.cache.EhCacheProvider'
         queries: false
+    flush:
+        mode: auto
 ---
 dataSource:
     pooled: true
@@ -79,5 +87,7 @@ dataSource:
     driverClassName: org.h2.Driver
     username: sa
     password: ''
-    dbCreate: 'update'
-    url: 'jdbc:h2:mem:testDb'
+    dbCreate: 'create-drop'
+#    url: 'jdbc:h2:mem:testDb'
+    url: jdbc:h2:mem:testDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+    dialect: org.hibernate.dialect.H2Dialect

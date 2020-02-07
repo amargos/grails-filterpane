@@ -140,7 +140,7 @@ class FilterPaneService {
                             }
                         }
                     } catch (Exception ex) {
-                        log.info ex
+                        log.info ex.toString()
                         log.info("No mapping property found on filterClass ${filterClass}")
                     }
                     if (params.sort) {

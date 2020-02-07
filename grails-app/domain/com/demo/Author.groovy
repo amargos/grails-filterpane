@@ -8,7 +8,7 @@ class Author {
     int age = -1
     Date birthdate = new Date()
 
-    static hasMany = [ books: Book ]
+//    static hasMany = [ books: Book ]
     static belongsTo = [Book]
 
     String toString() {

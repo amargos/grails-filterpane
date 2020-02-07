@@ -1,18 +1,20 @@
 package org.grails.plugins.filterpane
 
 import grails.core.GrailsApplication
+import grails.gorm.transactions.Transactional
 import grails.test.mixin.integration.Integration
 import grails.transaction.Rollback
 import com.demo.Author
 import com.demo.Book
 import com.demo.BookType
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.orm.hibernate4.HibernateQueryException
+import org.springframework.orm.hibernate5.HibernateQueryException
 import spock.lang.Specification
 import spock.lang.Unroll
 
 @Integration
 @Rollback
+@Transactional
 class FilterPaneServiceSpec extends Specification {
 
     @Autowired
@@ -20,12 +22,11 @@ class FilterPaneServiceSpec extends Specification {
     @Autowired
     GrailsApplication grailsApplication
 
+
     def "test nested criteria call dot notation"() {
         setup:
         def books
-//        Book.withNewSession {
         createBookWithAuthors()
-//        }
 
         when:
         Book.withNewSession {
@@ -39,22 +40,18 @@ class FilterPaneServiceSpec extends Specification {
         then:
         thrown(HibernateQueryException)
     }
-
+    @Transactional
     def "test nested criteria call"() {
         setup:
         def books
-        Book.withNewSession {
-            createBookWithAuthors()
-        }
+        createBookWithAuthors()
 
         when:
-        Book.withNewSession {
-            books = Book.createCriteria().listDistinct {
-                and {
-                    'authors' {
-                        eq('lastName', 'Dude')
-                        order('lastName', 'asc')
-                    }
+        books = Book.createCriteria().listDistinct {
+            and {
+                'authors' {
+                    eq('lastName', 'Dude')
+                    order('lastName', 'asc')
                 }
             }
         }
@@ -64,21 +61,18 @@ class FilterPaneServiceSpec extends Specification {
         books.size() == 1
     }
 
+    @Transactional
     def "test nested criteria call without distinct"() {
         setup:
         def books
-        Book.withNewSession {
             createBookWithAuthors()
-        }
 
         when:
-        Book.withNewSession {
-            books = Book.createCriteria().list {
-                and {
-                    'authors' {
-                        eq('lastName', 'Dude')
-                        order('lastName', 'asc')
-                    }
+        books = Book.createCriteria().list {
+            and {
+                'authors' {
+                    eq('lastName', 'Dude')
+                    order('lastName', 'asc')
                 }
             }
         }
@@ -134,7 +128,7 @@ class FilterPaneServiceSpec extends Specification {
         books[0].id == book.id
         books[0] == book
     }
-
+    @Transactional
     def "get author count for book by title"() {
         given:
         def params = ['filter': [op: ['authors': ['lastName': 'ILike']], 'authors': ['lastName': 'Dude']]]
@@ -488,11 +482,9 @@ class FilterPaneServiceSpec extends Specification {
         books[0].bookType == BookType.Reference
     }
 
-    void cleanupSpec() {
-        Book.withNewSession {
+    void cleanup() {
             Book.executeUpdate('delete Book')
             Author.executeUpdate('delete Author')
-        }
     }
 
     private void createBookWithAuthors() {
