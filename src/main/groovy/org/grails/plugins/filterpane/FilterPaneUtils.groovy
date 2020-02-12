@@ -4,6 +4,7 @@ import grails.core.GrailsApplication
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import grails.core.GrailsDomainClass
+import org.grails.datastore.mapping.model.PersistentEntity
 import org.joda.time.*
 import org.joda.time.base.AbstractInstant
 import org.joda.time.base.AbstractPartial
@@ -261,34 +262,27 @@ class FilterPaneUtils {
         isApplied
     }
 
-    static resolveDomainClass(GrailsApplication grailsApplication, bean) {
+    static PersistentEntity resolvePersistentEntityClass(GrailsApplication grailsApplication, bean) {
         String beanName
         def result = null
 
-        log.debug("resolveDomainClass: bean is ${bean?.class}")
-        if (bean instanceof GrailsDomainClass) {
+        log.debug("resolvePersistentEntityClass: bean is ${bean?.class}")
+        if (bean instanceof PersistentEntity) {
             return bean
         }
-
         if (bean instanceof Class) {
             beanName = bean.name
         } else if (bean instanceof String) {
             beanName = bean
         }
-
-        if (beanName) {
-            result = grailsApplication.getDomainClass(beanName)
-            if (!result) {
-                result = grailsApplication.domainClasses.find { it.clazz.simpleName == beanName }
-            }
-        }
+        result = grailsApplication.getMappingContext().getPersistentEntity(beanName)
         result
     }
 
     static resolveDomainProperty(domainClass, property) {
 
         if ("id".equals(property) || "identifier".equals(property)) {
-            return domainClass.identifier
+            return domainClass.getIdentity()
         }
 
         if ("class".equals(property)) {
@@ -310,7 +304,8 @@ class FilterPaneUtils {
     }
 
     static resolveReferencedDomainClass(property) {
-        property.embedded ? property.component : property.referencedDomainClass
+//        property.embedded ? property.component : property.referencedDomainClass
+        property.getOwner()
     }
 
     /**
@@ -319,8 +314,8 @@ class FilterPaneUtils {
      */
     static resolveSubDomainsProperties(domainClass) {
         def subClassPersistentProps = []
-        domainClass.subClasses.each { subDomain ->
-            def newProps = subDomain.persistentProperties.findAll {
+        domainClass.getAssociations().each { association ->
+            def newProps = association.getAssociatedEntity().persistentProperties.findAll {
                 !subClassPersistentProps.contains(it) && !domainClass.persistentProperties.contains(it)
             }
             subClassPersistentProps.addAll(newProps)

@@ -2,6 +2,8 @@ package org.grails.plugins.filterpane
 
 import grails.core.GrailsApplication
 import org.grails.compiler.injection.GrailsAwareClassLoader
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PersistentProperty
 
 class FilterPaneService {
 
@@ -17,7 +19,7 @@ class FilterPaneService {
         doFilter(params, filterClass, true)
     }
 
-    private filterParse(criteria, domainClass, params, filterParams, filterOpParams, doCount) {
+    private filterParse(criteria, PersistentEntity domainClass, params, filterParams, filterOpParams, doCount) {
         // First pull out the op map and store a list of its keys.
         def keyList = []
         keyList.addAll(filterOpParams.keySet())
@@ -90,7 +92,7 @@ class FilterPaneService {
         def filterParams = params.filter ? params.filter : params
         def filterOpParams = filterParams.op
 //        def associationList = []
-        def domainClass = FilterPaneUtils.resolveDomainClass(grailsApplication, filterClass)
+        PersistentEntity domainClass = FilterPaneUtils.resolvePersistentEntityClass(grailsApplication, filterClass)
 
         //if (filterProperties != null) {
         if (filterOpParams?.size() > 0) {
@@ -184,18 +186,17 @@ class FilterPaneService {
         }
     }
 
-    private addCriterion(criteria, propertyName, op, value, value2, filterParams, domainProperty) {
+    private addCriterion(criteria, propertyName, op, value, value2, filterParams, PersistentProperty domainProperty) {
         if (!op) {
             log.debug('Skipping due to null operation')
             return
         }
         log.debug("Adding ${propertyName} ${op} ${value} value2 ${value2}")
 //        boolean added = true
-
         // GRAILSPLUGINS-1320.  If value is instance of Date and op is Equal and
         // precision on date picker was 'day', turn this into a between from
         // midnight to 1 ms before midnight of the next day.
-        boolean isDayPrecision = "y".equalsIgnoreCase(filterParams["${domainProperty?.domainClass?.name}.${domainProperty?.name}_isDayPrecision"]) || "y".equalsIgnoreCase(filterParams["${domainProperty?.name}_isDayPrecision"])
+        boolean isDayPrecision = "y".equalsIgnoreCase(filterParams["${domainProperty?.owner?.name}.${domainProperty?.name}_isDayPrecision"]) || "y".equalsIgnoreCase(filterParams["${domainProperty?.name}_isDayPrecision"])
         boolean isOpAlterable = (op == FilterPaneOperationType.Equal || op == FilterPaneOperationType.NotEqual || op == FilterPaneOperationType.Equal.operation || op == FilterPaneOperationType.NotEqual.operation)
         boolean isGreaterThan = (op == FilterPaneOperationType.GreaterThan || op == FilterPaneOperationType.GreaterThan.operation)
         if (value != null && isDayPrecision && Date.isAssignableFrom(value.class) && isOpAlterable) {
@@ -309,9 +310,11 @@ class FilterPaneService {
 
         // GRAILSPLUGINS-1717.  Groovy truth treats empty strings as false.  Compare against null.
         if (newValue != null) {
-            Class cls = domainProperty?.referencedPropertyType ?: domainProperty.type
+//            Class cls = domainProperty?.referencedPropertyType ?: domainProperty.type
+            Class cls = domainProperty.type
+
             String clsName = cls.simpleName.toLowerCase()
-            log.debug("cls is enum? ${cls.isEnum()}, domainProperty is ${domainProperty}, type is ${domainProperty.type}, refPropType is ${domainProperty.referencedPropertyType} value is '${newValue}', clsName is ${clsName}")
+            log.debug("cls is enum? ${cls.isEnum()}, domainProperty is ${domainProperty}, type is ${domainProperty.type}, refPropType is ${domainProperty.type} value is '${newValue}', clsName is ${clsName}")
 
             if ("class".equals(clsName)) {
                 def tempVal = newValue
@@ -339,7 +342,7 @@ class FilterPaneService {
                 } else if (tempVal.toString().length() > 0) {
                     newValue = resolveClassValue(tempVal.toString())
                 }
-            } else if (domainProperty.isEnum()) {
+            } else if (cls.isEnum()) {
                 def tempVal = newValue
                 newValue = null // default to null.  If it's valid, it'll get replaced with the real value.
                 try {

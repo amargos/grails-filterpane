@@ -5,6 +5,7 @@ import org.apache.commons.lang.StringUtils
 import grails.core.GrailsDomainClass
 import org.grails.compiler.injection.GrailsAwareClassLoader
 import grails.plugins.GrailsPluginManager
+import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.web.gsp.io.GrailsConventionGroovyPageLocator
 import org.joda.time.DateTime
 import org.joda.time.Instant
@@ -160,7 +161,7 @@ class FilterPaneTagLib {
         if (attrs.total != null) {
             count = attrs.total
         } else if (attrs.domainBean) {
-            def dc = FilterPaneUtils.resolveDomainClass(grailsApplication, attrs.domainBean)
+            def dc = FilterPaneUtils.resolvePersistentEntityClass(grailsApplication, attrs.domainBean)
 
             if (dc) {
                 count = dc.clazz.count()
@@ -188,7 +189,7 @@ class FilterPaneTagLib {
             renderModel.action = attrs.action ?: 'filter'
 
             def filterParams = FilterPaneUtils.extractFilterParams(params, true)
-            def domainBean = FilterPaneUtils.resolveDomainClass(grailsApplication, attrs.domainBean)
+            def domainBean = FilterPaneUtils.resolvePersistentEntityClass(grailsApplication, attrs.domainBean)
 
             def getProp = { key, filterOp ->
                 if (key.startsWith('filter.op.') && filterOp != null && filterOp != '') {
@@ -326,7 +327,7 @@ class FilterPaneTagLib {
         def renderModel = [customForm: false]
 
         // Validate required info
-        GrailsDomainClass domain = FilterPaneUtils.resolveDomainClass(grailsApplication, attrs.domain)
+        PersistentEntity domain = FilterPaneUtils.resolvePersistentEntityClass(grailsApplication, attrs.domain)
         if (domain == null) {
             log.error("Unable to resolve domain class for ${attrs.domain}")
             return
@@ -475,7 +476,7 @@ class FilterPaneTagLib {
 
     def date = { attrs, body ->
 
-        def domainClass = FilterPaneUtils.resolveDomainClass(grailsApplication, attrs.domain)
+        def domainClass = FilterPaneUtils.resolvePersistentEntityClass(grailsApplication, attrs.domain)
         def domainProperty = FilterPaneUtils.resolveDomainProperty(domainClass, attrs.propertyName)
         def d = FilterPaneUtils.parseDateFromDatePickerParams(attrs.name, params, domainProperty.type)
         def model = [:]
