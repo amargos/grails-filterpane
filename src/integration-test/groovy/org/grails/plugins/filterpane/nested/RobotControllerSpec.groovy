@@ -2,8 +2,8 @@ package org.grails.plugins.filterpane.nested
 
 import grails.core.GrailsApplication
 import grails.gorm.transactions.Transactional
-import grails.test.mixin.TestFor
-import grails.test.mixin.integration.Integration
+import grails.testing.mixin.integration.Integration
+import grails.testing.web.controllers.ControllerUnitTest
 import org.grails.plugins.filterpane.FilterPaneService
 import com.demo.nested.Function
 import com.demo.nested.Part
@@ -13,9 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 
 @Integration
-@TestFor(RobotController)
 @Transactional
-class RobotControllerSpec extends Specification {
+class RobotControllerSpec extends Specification implements ControllerUnitTest<RobotController> {
     @Autowired
     FilterPaneService filterPaneService
 

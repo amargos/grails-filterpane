@@ -1,8 +1,7 @@
 package org.grails.plugins.filterpane
 
 import grails.core.GrailsApplication
-import grails.test.mixin.integration.Integration
-import grails.transaction.Rollback
+import grails.testing.mixin.integration.Integration
 import com.demo.Author
 import com.demo.Book
 import com.demo.BookController
@@ -10,6 +9,7 @@ import com.demo.BookType
 import com.demo.FavoriteGenre
 import com.demo.Publisher
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.annotation.Rollback
 import spock.lang.Ignore
 import spock.lang.Specification
 

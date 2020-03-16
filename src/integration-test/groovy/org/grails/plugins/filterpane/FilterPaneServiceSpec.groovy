@@ -2,13 +2,13 @@ package org.grails.plugins.filterpane
 
 import grails.core.GrailsApplication
 import grails.gorm.transactions.Transactional
-import grails.test.mixin.integration.Integration
-import grails.transaction.Rollback
 import com.demo.Author
 import com.demo.Book
 import com.demo.BookType
+import grails.testing.mixin.integration.Integration
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.orm.hibernate5.HibernateQueryException
+//import org.springframework.orm.hibernate5.HibernateQueryException
+import org.springframework.test.annotation.Rollback
 import spock.lang.Specification
 import spock.lang.Unroll
 
